@@ -15,6 +15,21 @@ var titleStore = Reflux.createStore({
   }
 });
 
+var dateChange = Reflux.createAction();
+
+var dateStore = Reflux.createStore({
+  init: function() {
+    this.value = this.getInitialState();
+    this.listenTo(dateChange, function(newValue) {
+      this.value = newValue;
+      this.trigger(this.value);
+    }.bind(this));
+  },
+  getInitialState: function() {
+    return 'Introductory Clause';
+  }
+});
+
 var partiesStore = Reflux.createStore({
   init: function() {
     this.value = this.getInitialState();
@@ -34,10 +49,15 @@ var projectStore = Reflux.createStore({
       this.value = this.value.set('title', title);
       this.trigger(this.value);
     }.bind(this));
+    this.listenTo(dateStore, function(date) {
+      this.value = this.value.set('date', date);
+      this.trigger(this.value);
+    }.bind(this));
   },
   getInitialState: function() {
     return fromJS({
       title: titleStore.getInitialState(),
+      date: dateStore.getInitialState(),
       parties: partiesStore.getInitialState()
     });
   }
@@ -67,10 +87,21 @@ var Party = render('Party', function() {
   return p({className: 'simpleLine'}, this.props.party.toJSON());
 });
 
+var DateLine = render('DateLine', function() {
+  return p(
+    {className: 'dateLine'},
+    this.props.date === 'Each Signature' ? 'Date' : ''
+  );
+});
+
 var Block = render('Block', function() {
   return div(
     {className: 'block'},
-    create(Party, {party: this.props.party})
+    [
+      this.props.date === 'Each Signature' ?
+        create(DateLine, {date: this.props.date}) : null,
+      create(Party, {party: this.props.party})
+    ]
   );
 });
 
@@ -84,16 +115,9 @@ var TitleInput = component('TitleInput', {
   handleChange: function(event) {
     this.setState({title: event.target.value});
   },
-  handleSubmit: function(event) {
-    event.preventDefault();
-    this.handleBlur();
-  },
   render: function() {
-    return React.DOM.form(
-      {
-        className: 'title',
-        onSubmit: this.handleSubmit
-      },
+    return div(
+      null,
       [
         React.DOM.label(null, 'Agreement Title'),
         React.DOM.input({
@@ -107,20 +131,73 @@ var TitleInput = component('TitleInput', {
   }
 });
 
+var DateSelect = component('DateSelect', {
+  getInitialState: function() {
+    return {date: 'Introductory Clause'};
+  },
+  handleChange: function(event) {
+    dateChange(event.target.value);
+  },
+  render: function() {
+    return div(
+      null,
+      [
+        React.DOM.label(null, 'Date'),
+        React.DOM.select(
+          {onChange: this.handleChange},
+          ['Introductory Clause', 'Each Signature']
+            .map(function(value) {
+              return React.DOM.option({value: value}, value);
+            })
+        )
+      ]
+    );
+  }
+});
+
+var SettingsForm = component('SettingsForm', {
+  handleSubmit: function(event) {
+    event.preventDefault();
+  },
+  render: function() {
+    return React.DOM.form(
+      {onSubmit: this.handleSubmit},
+      [
+        create(TitleInput, {title: this.props.title}),
+        create(DateSelect, null)
+      ]
+    );
+  }
+});
+
 var Paragraph = render('Paragraph', function() {
-  return p(
-    {},
-    'The parties are signing this ' + this.props.title +
-    ' on the date stated in the introductory clause.'
-  );
+  if (this.props.date === 'Introductory Clause') {
+    return p(
+      null,
+      'The parties are signing this ' + this.props.title +
+      ' on the date stated in the introductory clause.'
+    );
+  } else {
+    return p(
+      null,
+      'The parties are signing this ' + this.props.title +
+      ' on the dates written beside their respective signatures.'
+    );
+  }
 });
 
 var Page = render('Page', function() {
   return div(
     {className: 'page'},
     [
-      create(Paragraph, {title: this.props.title}),
-      create(Block, {party: this.props.party})
+      create(Paragraph, {
+        date: this.props.date,
+        title: this.props.title
+      }),
+      create(Block, {
+        date: this.props.date,
+        party: this.props.party
+      })
     ]
   );
 });
@@ -139,12 +216,16 @@ var Project = component('Project', {
   render: function() {
     var project = this.state.project;
     return div(null, [
-      create(TitleInput, {title: project.get('title')}),
+      create(SettingsForm, {
+        date: project.get('date'),
+        title: project.get('title')
+      }),
       project.get('parties')
         .map(function(party) {
           return React.createElement(Page, {
-            title: project.get('title'),
-            party: party
+            date: project.get('date'),
+            party: party,
+            title: project.get('title')
           });
         })
     ]);

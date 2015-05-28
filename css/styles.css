@@ -1,13 +1,13 @@
 * {
   font-family: "Times New Roman";
-  line-height: 12pt;
   font-size: 12pt;
+  line-height: 12pt;
 }
 
 .container {
-  width: 800px;
   margin: auto;
   text-align: center;
+  width: 800px;
 }
 
 .container > * {
@@ -25,8 +25,8 @@
 
 .page {
   display: block;
-  text-align: left;
   page-break-before: always;
+  text-align: left;
 }
 
 .page:first-of-type {
@@ -34,20 +34,34 @@
 }
 
 .block {
-  width: 50%;
+  margin-bottom: 24pt;
   margin-top: 36pt;
-  margin-left: 50%;
+  position: relative;
 }
 
 .simpleLine {
   border-top: 1px solid black;
+  display: block;
+  margin-left: 50%;
+  width: 50%;
+}
+
+.dateLine {
+  border-top: 1px solid black;
+  display: block;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  width: 40%;
 }
 
 #ribbon {
-  position: absolute;
-  top: 0;
-  right: 0;
   border: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .container > footer {

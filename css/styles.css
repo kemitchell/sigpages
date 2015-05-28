@@ -10,6 +10,10 @@
   text-align: center;
 }
 
+.container > * {
+  text-align: left;
+}
+
 @media screen {
   .page {
     border: 1px solid black;
@@ -37,4 +41,10 @@
 
 .simpleLine {
   border-top: 1px solid black;
+}
+
+@media print {
+  form {
+    display: none;
+  }
 }

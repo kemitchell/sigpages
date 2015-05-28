@@ -70,7 +70,7 @@
 }
 
 @media print {
-  #ribbon, footer, form {
+  button, #ribbon, footer, form {
     display: none;
   }
 }

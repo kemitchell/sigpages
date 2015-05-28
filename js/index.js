@@ -30,9 +30,20 @@ var dateStore = Reflux.createStore({
   }
 });
 
-var partiesStore = Reflux.createStore({
+var deleteBlock = Reflux.createAction();
+var addBlock = Reflux.createAction();
+
+var blocksStore = Reflux.createStore({
   init: function() {
     this.value = this.getInitialState();
+    this.listenTo(deleteBlock, function(index) {
+      this.value = this.value.delete(index);
+      this.trigger(this.value);
+    }.bind(this));
+    this.listenTo(addBlock, function() {
+      this.value = this.value.push(fromJS({name: 'John Doe'}));
+      this.trigger(this.value);
+    }.bind(this));
   },
   getInitialState: function() {
     return fromJS([
@@ -53,12 +64,16 @@ var projectStore = Reflux.createStore({
       this.value = this.value.set('date', date);
       this.trigger(this.value);
     }.bind(this));
+    this.listenTo(blocksStore, function(blocks) {
+      this.value = this.value.set('blocks', blocks);
+      this.trigger(this.value);
+    }.bind(this));
   },
   getInitialState: function() {
     return fromJS({
       title: titleStore.getInitialState(),
       date: dateStore.getInitialState(),
-      parties: partiesStore.getInitialState()
+      blocks: blocksStore.getInitialState()
     });
   }
 });
@@ -190,6 +205,7 @@ var Page = render('Page', function() {
   return div(
     {className: 'page'},
     [
+      create(ButtonBar, {index: this.props.index}),
       create(Paragraph, {
         date: this.props.date,
         title: this.props.title
@@ -198,6 +214,57 @@ var Page = render('Page', function() {
         date: this.props.date,
         party: this.props.party
       })
+    ]
+  );
+});
+
+var AddButton = component('AddButton', {
+  handleClick: function() {
+    addBlock();
+  },
+  render: function() {
+    return React.DOM.button(
+      {
+        className: 'add',
+        onClick: this.handleClick
+      },
+      'Add a Signature Block'
+    );
+  }
+});
+
+var DeleteButton = component('DeleteButton', {
+  handleClick: function() {
+    deleteBlock(this.props.index);
+  },
+  render: function() {
+    return React.DOM.button(
+      {
+        className: 'delete',
+        onClick: this.handleClick
+      },
+      'Delete this Signature Block'
+    );
+  }
+});
+
+var PrintButton = component('PrintButton', {
+  handleClick: function() {
+    window.print();
+  },
+  render: function() {
+    return React.DOM.button({
+      className: 'print',
+      onClick: this.handleClick
+    }, 'Print');
+  }
+});
+
+var ButtonBar = render('ButtonBar', function() {
+  return React.DOM.div(
+    null,
+    [
+      create(DeleteButton, {index: this.props.index})
     ]
   );
 });
@@ -220,14 +287,18 @@ var Project = component('Project', {
         date: project.get('date'),
         title: project.get('title')
       }),
-      project.get('parties')
-        .map(function(party) {
+      project.get('blocks')
+        .map(function(party, index) {
           return React.createElement(Page, {
+            index: index,
             date: project.get('date'),
             party: party,
             title: project.get('title')
           });
-        })
+        }),
+      create(AddButton, null),
+      ' ',
+      create(PrintButton, null)
     ]);
   }
 });

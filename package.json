@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "devDependencies": {
+    "jscs": "1.13.1",
+    "jshint": "2.7.0"
+  }
+}

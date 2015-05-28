@@ -1,0 +1,40 @@
+* {
+  font-family: "Times New Roman";
+  line-height: 12pt;
+  font-size: 12pt;
+}
+
+.container {
+  width: 800px;
+  margin: auto;
+  text-align: center;
+}
+
+@media screen {
+  .page {
+    border: 1px solid black;
+    border-bottom-style: dashed;
+    margin: 1em;
+    padding: 1em 1em 2em 1em;
+  }
+}
+
+.page {
+  display: block;
+  text-align: left;
+  page-break-before: always;
+}
+
+.page:first-of-type {
+  page-break-before: avoid;
+}
+
+.block {
+  width: 50%;
+  margin-top: 36pt;
+  margin-left: 50%;
+}
+
+.simpleLine {
+  border-top: 1px solid black;
+}

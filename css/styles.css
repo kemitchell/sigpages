@@ -18,8 +18,8 @@
   .page {
     border: 1px solid black;
     border-bottom-style: dashed;
-    margin: 1em;
-    padding: 1em 1em 2em 1em;
+    margin: 12pt;
+    padding: 12pt 12pt 24pt 12pt;
   }
 }
 
@@ -43,8 +43,20 @@
   border-top: 1px solid black;
 }
 
+#ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 0;
+}
+
+.container > footer {
+  padding: 12pt;
+  text-align: right;
+}
+
 @media print {
-  form {
+  #ribbon, footer, form {
     display: none;
   }
 }

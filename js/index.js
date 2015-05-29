@@ -47,7 +47,7 @@ var blocksStore = Reflux.createStore({
   },
   getInitialState: function() {
     return fromJS([
-      [{name: 'Erroll Flynn'}],
+      [{name: 'Errol Flynn'}],
       [{name: 'Basil Rathbone'}]
     ]);
   }

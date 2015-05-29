@@ -75,13 +75,6 @@
   width: 40%;
 }
 
-#ribbon {
-  border: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-}
-
 .container > footer {
   padding: 12pt;
   text-align: right;

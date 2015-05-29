@@ -99,7 +99,10 @@ function render(name, renderFunction) {
 }
 
 var Party = render('Party', function() {
-  return p({className: 'simpleLine'}, this.props.party.toJSON());
+  return p(
+    {className: 'simpleLine'},
+    this.props.party.toJSON()
+  );
 });
 
 var DateLine = render('DateLine', function() {
@@ -205,7 +208,7 @@ var Page = render('Page', function() {
   return div(
     {className: 'page'},
     [
-      create(ButtonBar, {index: this.props.index}),
+      create(DeleteButton, {index: this.props.index}),
       create(Paragraph, {
         date: this.props.date,
         title: this.props.title
@@ -218,55 +221,25 @@ var Page = render('Page', function() {
   );
 });
 
-var AddButton = component('AddButton', {
-  handleClick: function() {
-    addBlock();
-  },
-  render: function() {
-    return React.DOM.button(
-      {
-        className: 'add',
-        onClick: this.handleClick
-      },
-      'Add a Signature Block'
-    );
-  }
+function button(name, text, handleClick) {
+  return component(name, {
+    handleClick: handleClick,
+    render: function() {
+      return React.DOM.button({onClick: this.handleClick}, text);
+    }
+  });
+}
+
+var AddButton = button('AddButton', 'Add', function() {
+  addBlock();
 });
 
-var DeleteButton = component('DeleteButton', {
-  handleClick: function() {
-    deleteBlock(this.props.index);
-  },
-  render: function() {
-    return React.DOM.button(
-      {
-        className: 'delete',
-        onClick: this.handleClick
-      },
-      'Delete this Signature Block'
-    );
-  }
+var DeleteButton = button('DeleteButton', 'Delete', function() {
+  deleteBlock(this.props.index);
 });
 
-var PrintButton = component('PrintButton', {
-  handleClick: function() {
-    window.print();
-  },
-  render: function() {
-    return React.DOM.button({
-      className: 'print',
-      onClick: this.handleClick
-    }, 'Print');
-  }
-});
-
-var ButtonBar = render('ButtonBar', function() {
-  return React.DOM.div(
-    null,
-    [
-      create(DeleteButton, {index: this.props.index})
-    ]
-  );
+var PrintButton = button('PrintButton', 'Print', function() {
+  window.print();
 });
 
 var Project = component('Project', {

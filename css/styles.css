@@ -39,11 +39,29 @@
   position: relative;
 }
 
-.simpleLine {
-  border-top: 1px solid black;
+.blank, .line {
   display: block;
   margin-left: 50%;
   width: 50%;
+}
+
+.final {
+  margin-top: 36pt;
+}
+
+.simple {
+  border-top: 1px solid black;
+}
+
+.label {
+  display: block;
+}
+
+.spacer {
+  width: 100%;
+  display: block;
+  float: right;
+  border-bottom: 1px solid black;
 }
 
 .dateLine {

@@ -41,15 +41,41 @@ var blocksStore = Reflux.createStore({
       this.trigger(this.value);
     }.bind(this));
     this.listenTo(addBlock, function() {
-      this.value = this.value.push(fromJS({name: 'John Doe'}));
+      this.value = this.value.push(fromJS({person: 'John Doe'}));
       this.trigger(this.value);
     }.bind(this));
   },
   getInitialState: function() {
     return fromJS([
-      [{name: 'Errol Flynn'}],
-      [{name: 'Basil Rathbone'}]
-    ]);
+      [
+        {
+          type: 'person',
+          name: 'Errol Flynn'}],
+      [
+        {
+          type: 'person',
+          name: 'Basil Rathbone'}],
+      [
+        {
+          type: 'entity',
+          name: 'Some Fund, LLP'},
+        {
+          type: 'entity',
+          name: 'Some Corporation, Inc.',
+          role: 'General Partner'},
+        {
+          type: 'person',
+          name: 'John Doe',
+          role: 'Chief Executive Officer'}],
+      [
+        {
+          type: 'entity',
+          name: 'Some Fund, LLP'},
+        {
+          type: 'entity',
+          name: 'Some Corporation, Inc.',
+          role: 'General Partner'},
+        {type: 'person'}]]);
   }
 });
 
@@ -81,6 +107,7 @@ var projectStore = Reflux.createStore({
 var create = React.createElement.bind(React);
 var div = React.DOM.div.bind(React.DOM);
 var p = React.DOM.p.bind(React.DOM);
+var span = React.DOM.span.bind(React.DOM);
 
 function component(name, additionalProperties) {
   var properties = {
@@ -98,10 +125,64 @@ function render(name, renderFunction) {
   return component(name, {render: renderFunction});
 }
 
-var Party = render('Party', function() {
+var EntityLine = render('EntityLine', function() {
+  var entity = this.props.entity;
   return p(
-    {className: 'simpleLine'},
-    this.props.party.toJSON()
+    {className: 'line'},
+    [
+      entity.get('name'),
+      entity.has('role') ? ', its ' + entity.get('role') : null
+    ]
+  );
+});
+
+var BlankLine = render('BlankLine', function() {
+  return p(
+    {className: 'blank'},
+    [
+      span(
+        {className: 'label'},
+        this.props.label + ':'
+      ),
+      span({className: 'spacer'})
+    ]
+  );
+});
+
+var FinalLine = render('FinalLine', function() {
+  var person = this.props.person;
+  if (person.has('name')) {
+    return p(
+      {className: 'line simple final'},
+      [
+        person.get('name'),
+        person.has('role') ? ', ' + person.get('role') : null
+      ]
+    );
+  } else {
+
+    return div(
+      null,
+      [
+        create(BlankLine, {label: 'By'}),
+        create(BlankLine, {label: 'Name'}),
+        create(BlankLine, {label: 'Title'})
+      ]
+    );
+  }
+});
+
+var Party = render('Party', function() {
+  return div(
+    null,
+    [
+      this.props.party
+        .slice(0, -1)
+        .map(function(entity, index) {
+          return create(EntityLine, {entity: entity});
+        }),
+      create(FinalLine, {person: this.props.party.last()})
+    ]
   );
 });
 

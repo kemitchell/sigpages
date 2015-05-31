@@ -406,7 +406,10 @@ var SettingsForm = component('SettingsForm', {
     event.preventDefault();
   },
   render: function() {
-    return React.DOM.form({onSubmit: this.handleSubmit}, [
+    return React.DOM.form({
+      className: 'settings',
+      onSubmit: this.handleSubmit
+    }, [
       create(AgreementInput, {
         key: 'agreement',
         agreement: this.props.agreement
@@ -498,6 +501,18 @@ var Project = component('Project', {
         dateStyle: project.get('dateStyle'),
         agreement: project.get('agreement')
       }),
+      div({
+        key: 'buttons',
+        className: 'editorOnly buttons'
+      }, [
+        create(AddPartyButton, {
+          key: 'addParty'
+        }),
+        ' ',
+        create(PrintButton, {
+          key: 'print'
+        })
+      ]),
       project.get('parties')
         .map(function(party, partyIndex) {
           return create(Page, {
@@ -507,14 +522,7 @@ var Project = component('Project', {
             party: party,
             agreement: project.get('agreement')
           });
-        }),
-      create(AddPartyButton, {
-        key: 'addParty'
-      }),
-      ' ',
-      create(PrintButton, {
-        key: 'print'
-      })
+        })
     ]);
   }
 });

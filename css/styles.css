@@ -89,6 +89,10 @@
   width: 100%;
 }
 
+.settings, .buttons {
+  padding: 12pt;
+}
+
 @media print {
   .editorOnly, button, #ribbon, footer, form {
     display: none;

@@ -5,7 +5,7 @@
     "email": "kyle@kemitchell.com",
     "url": "https://kemitchell.com"
   },
-  "license": "Apache-2.0",
+  "license": "(Apache-2.0 AND BSD-3-Clause AND MIT)",
   "devDependencies": {
     "csslint": "~0.10.0",
     "jscs": "~1.13.1",

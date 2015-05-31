@@ -8,8 +8,8 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "csslint": "~0.10.0",
-    "jscs": "1.13.1",
-    "jshint": "2.7.0"
+    "jscs": "~1.13.1",
+    "jshint": "~2.7.0"
   },
   "scripts": {
     "test": "csslint css && jshint js/index.js && jscs js/index.js"

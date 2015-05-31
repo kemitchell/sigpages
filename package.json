@@ -1,10 +1,11 @@
 {
   "private": true,
   "devDependencies": {
+    "csslint": "~0.10.0",
     "jscs": "1.13.1",
     "jshint": "2.7.0"
   },
   "scripts": {
-    "test": "jshint js/index.js && jscs js/index.js"
+    "test": "csslint css && jshint js/index.js && jscs js/index.js"
   }
 }

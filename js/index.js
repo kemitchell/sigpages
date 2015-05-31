@@ -1,12 +1,12 @@
 var fromJS = Immutable.fromJS.bind(Immutable);
 
-var titleChange = Reflux.createAction();
+var agreementChange = Reflux.createAction();
 
-var titleStore = Reflux.createStore({
+var agreementStore = Reflux.createStore({
   init: function() {
     this.value = this.getInitialState();
-    this.listenTo(titleChange, function(title) {
-      this.value = title;
+    this.listenTo(agreementChange, function(agreement) {
+      this.value = agreement;
       this.trigger(this.value);
     }.bind(this));
   },
@@ -38,13 +38,13 @@ var deleteEntity = Reflux.createAction();
 var defaultPerson = fromJS({
   type: 'person',
   name: 'Shannon Signer',
-  role: ''
+  title: ''
 });
 
 var defaultEntity = fromJS({
   type: 'entity',
   name: 'Some, Inc.',
-  role: ''
+  title: ''
 });
 
 var partiesStore = Reflux.createStore({
@@ -81,8 +81,8 @@ var partiesStore = Reflux.createStore({
 var projectStore = Reflux.createStore({
   init: function() {
     this.value = this.getInitialState();
-    this.listenTo(titleStore, function(title) {
-      this.value = this.value.set('title', title);
+    this.listenTo(agreementStore, function(agreement) {
+      this.value = this.value.set('agreement', agreement);
       this.trigger(this.value);
     }.bind(this));
     this.listenTo(dateStyleStore, function(dateStyle) {
@@ -96,7 +96,7 @@ var projectStore = Reflux.createStore({
   },
   getInitialState: function() {
     return fromJS({
-      title: titleStore.getInitialState(),
+      agreement: agreementStore.getInitialState(),
       dateStyle: dateStyleStore.getInitialState(),
       parties: partiesStore.getInitialState()
     });
@@ -124,7 +124,7 @@ function render(name, renderFunction) {
   return component(name, {render: renderFunction});
 }
 
-var NameField = render('NameField', function() {
+var NameInput = render('NameInput', function() {
   return div({className: 'wrapper'}, [
     (this.props.name ?
       span({className: 'printOnly'}, this.props.name) :
@@ -133,12 +133,12 @@ var NameField = render('NameField', function() {
   ]);
 });
 
-var RoleField = render('RoleField', function() {
+var TitleInput = render('TitleInput', function() {
   return div({className: 'wrapper'}, [
-    (this.props.role ?
-      span({className: 'printOnly'}, this.props.role) :
+    (this.props.title ?
+      span({className: 'printOnly'}, this.props.title) :
       span({className: 'printOnly spacer'})),
-    React.DOM.input({placeholder: 'Title', value: this.props.role})
+    React.DOM.input({placeholder: 'Title', value: this.props.title})
   ]);
 });
 
@@ -150,7 +150,7 @@ var EntityLine = render('EntityLine', function() {
         partyIndex: this.props.partyIndex,
         entityIndex: this.props.entityIndex
       }),
-      create(NameField, {name: entity.get('name')})
+      create(NameInput, {name: entity.get('name')})
     ]);
   } else {
     return div({className: 'line'}, [
@@ -159,9 +159,9 @@ var EntityLine = render('EntityLine', function() {
         entityIndex: this.props.entityIndex
       }),
       'By: ',
-      create(NameField, {name: entity.get('name')}),
+      create(NameInput, {name: entity.get('name')}),
       ', its ',
-      create(RoleField, {role: entity.get('role')})
+      create(TitleInput, {title: entity.get('title')})
     ]);
   }
 });
@@ -170,7 +170,7 @@ var FinalLine = render('FinalLine', function() {
   var person = this.props.person;
   if (this.props.individual) {
     return div({className: 'line simple final'}, [
-      create(NameField, {name: person.get('name')})
+      create(NameInput, {name: person.get('name')})
     ]);
   } else {
     return div({className: 'final'}, [
@@ -180,11 +180,11 @@ var FinalLine = render('FinalLine', function() {
       ]),
       div({className: 'blank'}, [
         span({className: 'label'}, 'Name: '),
-        create(NameField, {name: person.get('name')})
+        create(NameInput, {name: person.get('name')})
       ]),
       div({className: 'blank'}, [
         span({className: 'label'}, 'Title: '),
-        create(RoleField, {name: person.get('role')})
+        create(TitleInput, {title: person.get('title')})
       ])
     ]);
   }
@@ -246,15 +246,15 @@ var Block = render('Block', function() {
   ]);
 });
 
-var TitleInput = component('TitleInput', {
+var AgreementInput = component('AgreementInput', {
   getInitialState: function() {
-    return {title: this.props.title};
+    return {agreement: this.props.agreement};
   },
   handleBlur: function() {
-    titleChange(this.state.title);
+    agreementChange(this.state.agreement);
   },
   handleChange: function(event) {
-    this.setState({title: event.target.value});
+    this.setState({agreement: event.target.value});
   },
   render: function() {
     return div(null, [
@@ -263,7 +263,7 @@ var TitleInput = component('TitleInput', {
         type: 'text',
         onChange: this.handleChange,
         onBlur: this.handleBlur,
-        value: this.state.title
+        value: this.state.agreement
       })
     ]);
   }
@@ -296,7 +296,7 @@ var SettingsForm = component('SettingsForm', {
   },
   render: function() {
     return React.DOM.form({onSubmit: this.handleSubmit}, [
-      create(TitleInput, {title: this.props.title}),
+      create(AgreementInput, {agreement: this.props.agreement}),
       create(DateStyleSelect)
     ]);
   }
@@ -305,12 +305,12 @@ var SettingsForm = component('SettingsForm', {
 var Paragraph = render('Paragraph', function() {
   if (this.props.dateStyle === 'Introductory Clause') {
     return p(null, [
-      'The parties are signing this ' + this.props.title +
+      'The parties are signing this ' + this.props.agreement +
       ' on the date stated in the introductory clause.'
     ]);
   } else {
     return p(null, [
-      'The parties are signing this ' + this.props.title +
+      'The parties are signing this ' + this.props.agreement +
       ' on the dates written beside their respective signatures.'
     ]);
   }
@@ -321,7 +321,7 @@ var Page = render('Page', function() {
     create(DeletePartyButton, {partyIndex: this.props.partyIndex}),
     create(Paragraph, {
       dateStyle: this.props.dateStyle,
-      title: this.props.title
+      agreement: this.props.agreement
     }),
     create(Block, {
       partyIndex: this.props.partyIndex,
@@ -372,7 +372,7 @@ var Project = component('Project', {
     return div(null, [
       create(SettingsForm, {
         dateStyle: project.get('dateStyle'),
-        title: project.get('title')
+        agreement: project.get('agreement')
       }),
       project.get('parties')
         .map(function(party, partyIndex) {
@@ -380,7 +380,7 @@ var Project = component('Project', {
             partyIndex: partyIndex,
             dateStyle: project.get('dateStyle'),
             party: party,
-            title: project.get('title')
+            agreement: project.get('agreement')
           });
         }),
       create(AddPartyButton),

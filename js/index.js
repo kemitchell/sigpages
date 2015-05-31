@@ -152,11 +152,14 @@ function editableInput(name, key, updateEvent, eventArgumentProps) {
       this.setState({value: event.target.value});
     },
     render: function() {
-      return div({className: 'wrapper'}, [
+      return div({
+        className: 'wrapper'
+      }, [
         (this.state.value ?
-          span({className: 'printOnly'}, this.state.value) :
-          span({className: 'printOnly spacer'})),
+          span({key: 'val', className: 'printOnly'}, this.state.value) :
+          span({key: 'val', className: 'printOnly spacer'})),
         React.DOM.input({
+          key: 'input',
           onChange: this.handleChange,
           onBlur: this.handleBlur,
           value: this.state.value
@@ -177,31 +180,40 @@ var TitleInput = editableInput('TitleInput', 'title', titleChange, [
 var EntityLine = render('EntityLine', function() {
   var entity = this.props.entity;
   if (this.props.top) {
-    return div({className: 'line'}, [
+    return div({
+      className: 'line'
+    }, [
       create(DeleteEntityButton, {
+        key: 'delete',
         partyIndex: this.props.partyIndex,
         entityIndex: this.props.entityIndex
       }),
       create(NameInput, {
+        key: 'name',
         partyIndex: this.props.partyIndex,
         entityIndex: this.props.entityIndex,
         name: entity.get('name')
       })
     ]);
   } else {
-    return div({className: 'line'}, [
+    return div({
+      className: 'line'
+    }, [
       create(DeleteEntityButton, {
+        key: 'delete',
         partyIndex: this.props.partyIndex,
         entityIndex: this.props.entityIndex
       }),
       'By: ',
       create(NameInput, {
+        key: 'name',
         partyIndex: this.props.partyIndex,
         entityIndex: this.props.entityIndex,
         name: entity.get('name')
       }),
       ', its ',
       create(TitleInput, {
+        key: 'title',
         partyIndex: this.props.partyIndex,
         entityIndex: this.props.entityIndex,
         title: entity.get('title')
@@ -213,30 +225,53 @@ var EntityLine = render('EntityLine', function() {
 var FinalLine = render('FinalLine', function() {
   var person = this.props.person;
   if (this.props.individual) {
-    return div({className: 'line simple final'}, [
+    return div({
+      className: 'line simple final'
+    }, [
       create(NameInput, {
+        key: 'input',
         partyIndex: this.props.partyIndex,
         entityIndex: this.props.entityIndex,
         name: person.get('name')
       })
     ]);
   } else {
-    return div({className: 'final'}, [
-      div({className: 'blank'}, [
-        span({className: 'label'}, 'By: '),
-        span({className: 'spacer'})
+    return div({
+      className: 'final'
+    }, [
+      div({
+        key: 'signature', className: 'blank'
+      }, [
+        span({
+          key: 'label',
+          className: 'label'
+        }, [
+          'By: '
+        ]),
+        span({
+          key: 'spacer',
+          className: 'spacer'
+        })
       ]),
-      div({className: 'blank'}, [
-        span({className: 'label'}, 'Name: '),
+      div({
+        key: 'name',
+        className: 'blank'
+      }, [
+        span({key: 'label', className: 'label'}, 'Name: '),
         create(NameInput, {
+          key: 'input',
           partyIndex: this.props.partyIndex,
           entityIndex: this.props.entityIndex,
           name: person.get('name')
         })
       ]),
-      div({className: 'blank'}, [
-        span({className: 'label'}, 'Title: '),
+      div({
+        key: 'title',
+        className: 'blank'
+      }, [
+        span({key: 'label', className: 'label'}, 'Title: '),
         create(TitleInput, {
+          key: 'input',
           partyIndex: this.props.partyIndex,
           entityIndex: this.props.entityIndex,
           title: person.get('title')
@@ -253,6 +288,7 @@ var Party = render('Party', function() {
       .slice(0, -1)
       .map(function(entity, entityIndex) {
         return create(EntityLine, {
+          key: entityIndex,
           top: entityIndex === 0,
           partyIndex: props.partyIndex,
           entityIndex: entityIndex,
@@ -260,6 +296,7 @@ var Party = render('Party', function() {
         });
       }),
     create(FinalLine, {
+      key: 'final',
       partyIndex: props.partyIndex,
       entityIndex: props.party.count() - 1,
       individual: props.party.count() < 2,
@@ -291,13 +328,25 @@ var DeleteEntityButton = button(
 );
 
 var Block = render('Block', function() {
-  return div({className: 'block'}, [
+  return div({
+    className: 'block'
+  }, [
     this.props.dateStyle === 'Each Signature' ?
-      create(DateLine, {dateStyle: this.props.dateStyle}) : null,
-    div({className: 'line editorOnly'}, [
-      create(AddEntityButton, {partyIndex: this.props.partyIndex})
+      create(DateLine, {
+        key: 'date',
+        dateStyle: this.props.dateStyle
+      }) : null,
+    div({
+      key: 'add',
+      className: 'line editorOnly'
+    }, [
+      create(AddEntityButton, {
+        key: 'add',
+        partyIndex: this.props.partyIndex
+      })
     ]),
     create(Party, {
+      key: 'party',
       partyIndex: this.props.partyIndex,
       party: this.props.party
     })
@@ -316,8 +365,9 @@ var AgreementInput = component('AgreementInput', {
   },
   render: function() {
     return div(null, [
-      React.DOM.label(null, 'Agreement Title'),
+      React.DOM.label({key: 'label'}, 'Agreement Title'),
       React.DOM.input({
+        key: 'input',
         type: 'text',
         onChange: this.handleChange,
         onBlur: this.handleBlur,
@@ -336,12 +386,15 @@ var DateStyleSelect = component('DateStyleSelect', {
   },
   render: function() {
     return div(null, [
-      React.DOM.label(null, 'Date'),
+      React.DOM.label({key: 'label'}, 'Date'),
       React.DOM.select(
-        {onChange: this.handleChange},
+        {key: 'select', onChange: this.handleChange},
         ['Introductory Clause', 'Each Signature']
           .map(function(value) {
-            return React.DOM.option({value: value}, value);
+            return React.DOM.option({
+              key: value,
+              value: value
+            }, value);
           })
       )
     ]);
@@ -354,8 +407,13 @@ var SettingsForm = component('SettingsForm', {
   },
   render: function() {
     return React.DOM.form({onSubmit: this.handleSubmit}, [
-      create(AgreementInput, {agreement: this.props.agreement}),
-      create(DateStyleSelect)
+      create(AgreementInput, {
+        key: 'agreement',
+        agreement: this.props.agreement
+      }),
+      create(DateStyleSelect, {
+        key: 'datStyle'
+      })
     ]);
   }
 });
@@ -375,13 +433,20 @@ var Paragraph = render('Paragraph', function() {
 });
 
 var Page = render('Page', function() {
-  return div({className: 'page'}, [
-    create(DeletePartyButton, {partyIndex: this.props.partyIndex}),
+  return div({
+    className: 'page'
+  }, [
+    create(DeletePartyButton, {
+      key: 'delete',
+      partyIndex: this.props.partyIndex
+    }),
     create(Paragraph, {
+      key: 'paragraph',
       dateStyle: this.props.dateStyle,
       agreement: this.props.agreement
     }),
     create(Block, {
+      key: 'block',
       partyIndex: this.props.partyIndex,
       dateStyle: this.props.dateStyle,
       party: this.props.party
@@ -429,21 +494,27 @@ var Project = component('Project', {
     var project = this.state.project;
     return div(null, [
       create(SettingsForm, {
+        key: 'settings',
         dateStyle: project.get('dateStyle'),
         agreement: project.get('agreement')
       }),
       project.get('parties')
         .map(function(party, partyIndex) {
           return create(Page, {
+            key: partyIndex,
             partyIndex: partyIndex,
             dateStyle: project.get('dateStyle'),
             party: party,
             agreement: project.get('agreement')
           });
         }),
-      create(AddPartyButton),
+      create(AddPartyButton, {
+        key: 'addParty'
+      }),
       ' ',
-      create(PrintButton)
+      create(PrintButton, {
+        key: 'print'
+      })
     ]);
   }
 });

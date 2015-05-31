@@ -30,10 +30,12 @@ var dateStyleStore = Reflux.createStore({
   }
 });
 
-var deleteParty = Reflux.createAction();
-var addParty = Reflux.createAction();
 var addEntity = Reflux.createAction();
+var addParty = Reflux.createAction();
 var deleteEntity = Reflux.createAction();
+var deleteParty = Reflux.createAction();
+var nameChange = Reflux.createAction();
+var titleChange = Reflux.createAction();
 
 var defaultPerson = fromJS({
   type: 'person',
@@ -67,6 +69,14 @@ var partiesStore = Reflux.createStore({
     }.bind(this));
     this.listenTo(deleteEntity, function(partyIndex, entityIndex) {
       this.value = this.value.deleteIn([partyIndex, entityIndex]);
+      this.trigger(this.value);
+    }.bind(this));
+    this.listenTo(nameChange, function(party, entity, value) {
+      this.value = this.value.setIn([party, entity, 'name'], value);
+      this.trigger(this.value);
+    }.bind(this));
+    this.listenTo(titleChange, function(party, entity, value) {
+      this.value = this.value.setIn([party, entity, 'title'], value);
       this.trigger(this.value);
     }.bind(this));
   },
@@ -124,23 +134,45 @@ function render(name, renderFunction) {
   return component(name, {render: renderFunction});
 }
 
-var NameInput = render('NameInput', function() {
-  return div({className: 'wrapper'}, [
-    (this.props.name ?
-      span({className: 'printOnly'}, this.props.name) :
-      span({className: 'printOnly spacer'})),
-    React.DOM.input({placeholder: 'Name', value: this.props.name})
-  ]);
-});
+function editableInput(name, key, updateEvent, eventArgumentProps) {
+  return component(name, {
+    getInitialState: function() {
+      return {value: this.props[key]};
+    },
+    handleBlur: function() {
+      var props = this.props;
+      var eventArguments = eventArgumentProps
+        .map(function(key) {
+          return props[key];
+        })
+        .concat(this.state.value);
+      updateEvent.apply(this, eventArguments);
+    },
+    handleChange: function(event) {
+      this.setState({value: event.target.value});
+    },
+    render: function() {
+      return div({className: 'wrapper'}, [
+        (this.state.value ?
+          span({className: 'printOnly'}, this.state.value) :
+          span({className: 'printOnly spacer'})),
+        React.DOM.input({
+          onChange: this.handleChange,
+          onBlur: this.handleBlur,
+          value: this.state.value
+        })
+      ]);
+    }
+  });
+}
 
-var TitleInput = render('TitleInput', function() {
-  return div({className: 'wrapper'}, [
-    (this.props.title ?
-      span({className: 'printOnly'}, this.props.title) :
-      span({className: 'printOnly spacer'})),
-    React.DOM.input({placeholder: 'Title', value: this.props.title})
-  ]);
-});
+var NameInput = editableInput('NameInput', 'name', nameChange, [
+  'partyIndex', 'entityIndex'
+]);
+
+var TitleInput = editableInput('TitleInput', 'title', titleChange, [
+  'partyIndex', 'entityIndex'
+]);
 
 var EntityLine = render('EntityLine', function() {
   var entity = this.props.entity;
@@ -150,7 +182,11 @@ var EntityLine = render('EntityLine', function() {
         partyIndex: this.props.partyIndex,
         entityIndex: this.props.entityIndex
       }),
-      create(NameInput, {name: entity.get('name')})
+      create(NameInput, {
+        partyIndex: this.props.partyIndex,
+        entityIndex: this.props.entityIndex,
+        name: entity.get('name')
+      })
     ]);
   } else {
     return div({className: 'line'}, [
@@ -159,9 +195,17 @@ var EntityLine = render('EntityLine', function() {
         entityIndex: this.props.entityIndex
       }),
       'By: ',
-      create(NameInput, {name: entity.get('name')}),
+      create(NameInput, {
+        partyIndex: this.props.partyIndex,
+        entityIndex: this.props.entityIndex,
+        name: entity.get('name')
+      }),
       ', its ',
-      create(TitleInput, {title: entity.get('title')})
+      create(TitleInput, {
+        partyIndex: this.props.partyIndex,
+        entityIndex: this.props.entityIndex,
+        title: entity.get('title')
+      })
     ]);
   }
 });
@@ -170,7 +214,11 @@ var FinalLine = render('FinalLine', function() {
   var person = this.props.person;
   if (this.props.individual) {
     return div({className: 'line simple final'}, [
-      create(NameInput, {name: person.get('name')})
+      create(NameInput, {
+        partyIndex: this.props.partyIndex,
+        entityIndex: this.props.entityIndex,
+        name: person.get('name')
+      })
     ]);
   } else {
     return div({className: 'final'}, [
@@ -180,11 +228,19 @@ var FinalLine = render('FinalLine', function() {
       ]),
       div({className: 'blank'}, [
         span({className: 'label'}, 'Name: '),
-        create(NameInput, {name: person.get('name')})
+        create(NameInput, {
+          partyIndex: this.props.partyIndex,
+          entityIndex: this.props.entityIndex,
+          name: person.get('name')
+        })
       ]),
       div({className: 'blank'}, [
         span({className: 'label'}, 'Title: '),
-        create(TitleInput, {title: person.get('title')})
+        create(TitleInput, {
+          partyIndex: this.props.partyIndex,
+          entityIndex: this.props.entityIndex,
+          title: person.get('title')
+        })
       ])
     ]);
   }
@@ -193,7 +249,7 @@ var FinalLine = render('FinalLine', function() {
 var Party = render('Party', function() {
   var props = this.props;
   return div(null, [
-    this.props.party
+    props.party
       .slice(0, -1)
       .map(function(entity, entityIndex) {
         return create(EntityLine, {
@@ -204,8 +260,10 @@ var Party = render('Party', function() {
         });
       }),
     create(FinalLine, {
-      individual: this.props.party.count() < 2,
-      person: this.props.party.last()
+      partyIndex: props.partyIndex,
+      entityIndex: props.party.count() - 1,
+      individual: props.party.count() < 2,
+      person: props.party.last()
     })
   ]);
 });

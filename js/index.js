@@ -15,12 +15,12 @@ var titleStore = Reflux.createStore({
   }
 });
 
-var dateChange = Reflux.createAction();
+var dateStyleChange = Reflux.createAction();
 
-var dateStore = Reflux.createStore({
+var dateStyleStore = Reflux.createStore({
   init: function() {
     this.value = this.getInitialState();
-    this.listenTo(dateChange, function(newValue) {
+    this.listenTo(dateStyleChange, function(newValue) {
       this.value = newValue;
       this.trigger(this.value);
     }.bind(this));
@@ -30,51 +30,51 @@ var dateStore = Reflux.createStore({
   }
 });
 
-var deleteBlock = Reflux.createAction();
-var addBlock = Reflux.createAction();
+var deleteParty = Reflux.createAction();
+var addParty = Reflux.createAction();
 var addEntity = Reflux.createAction();
+var deleteEntity = Reflux.createAction();
 
-var blocksStore = Reflux.createStore({
+var defaultPerson = fromJS({
+  type: 'person',
+  name: 'Shannon Signer',
+  role: ''
+});
+
+var defaultEntity = fromJS({
+  type: 'entity',
+  name: 'Some, Inc.',
+  role: ''
+});
+
+var partiesStore = Reflux.createStore({
   init: function() {
     this.value = this.getInitialState();
-    this.listenTo(deleteBlock, function(index) {
-      this.value = this.value.delete(index);
+    this.listenTo(deleteParty, function(partyIndex) {
+      this.value = this.value.delete(partyIndex);
       this.trigger(this.value);
     }.bind(this));
-    this.listenTo(addBlock, function() {
-      this.value = this.value.push(fromJS({person: 'John Doe'}));
+    this.listenTo(addParty, function() {
+      this.value = this.value.push(fromJS([defaultPerson]));
       this.trigger(this.value);
     }.bind(this));
-    this.listenTo(addEntity, function(index) {
+    this.listenTo(addEntity, function(partyIndex) {
       this.value = this.value.set(
-        index,
-        this.value.get(index).unshift(fromJS({
-          type: 'entity',
-          name: 'Some, Inc.',
-          role: ''
-        }))
+        partyIndex,
+        this.value.get(partyIndex).unshift(defaultEntity)
       );
+      this.trigger(this.value);
+    }.bind(this));
+    this.listenTo(deleteEntity, function(partyIndex, entityIndex) {
+      this.value = this.value.deleteIn([partyIndex, entityIndex]);
       this.trigger(this.value);
     }.bind(this));
   },
   getInitialState: function() {
     return fromJS([
-      [
-        {
-          type: 'person',
-          name: 'John Doe'}],
-      [
-        {
-          type: 'entity',
-          name: 'Some Fund, LLP'},
-        {
-          type: 'entity',
-          name: 'Some Corporation, Inc.',
-          role: 'General Partner'},
-        {
-          type: 'person',
-          name: 'John Doe',
-          role: ''}]]);
+      [defaultPerson],
+      [defaultEntity, defaultPerson]
+    ]);
   }
 });
 
@@ -85,20 +85,20 @@ var projectStore = Reflux.createStore({
       this.value = this.value.set('title', title);
       this.trigger(this.value);
     }.bind(this));
-    this.listenTo(dateStore, function(date) {
-      this.value = this.value.set('date', date);
+    this.listenTo(dateStyleStore, function(dateStyle) {
+      this.value = this.value.set('dateStyle', dateStyle);
       this.trigger(this.value);
     }.bind(this));
-    this.listenTo(blocksStore, function(blocks) {
-      this.value = this.value.set('blocks', blocks);
+    this.listenTo(partiesStore, function(parties) {
+      this.value = this.value.set('parties', parties);
       this.trigger(this.value);
     }.bind(this));
   },
   getInitialState: function() {
     return fromJS({
       title: titleStore.getInitialState(),
-      date: dateStore.getInitialState(),
-      blocks: blocksStore.getInitialState()
+      dateStyle: dateStyleStore.getInitialState(),
+      parties: partiesStore.getInitialState()
     });
   }
 });
@@ -146,10 +146,18 @@ var EntityLine = render('EntityLine', function() {
   var entity = this.props.entity;
   if (this.props.top) {
     return div({className: 'line'}, [
+      create(DeleteEntityButton, {
+        partyIndex: this.props.partyIndex,
+        entityIndex: this.props.entityIndex
+      }),
       create(NameField, {name: entity.get('name')})
     ]);
   } else {
     return div({className: 'line'}, [
+      create(DeleteEntityButton, {
+        partyIndex: this.props.partyIndex,
+        entityIndex: this.props.entityIndex
+      }),
       'By: ',
       create(NameField, {name: entity.get('name')}),
       ', its ',
@@ -183,12 +191,15 @@ var FinalLine = render('FinalLine', function() {
 });
 
 var Party = render('Party', function() {
+  var props = this.props;
   return div(null, [
     this.props.party
       .slice(0, -1)
-      .map(function(entity, index) {
+      .map(function(entity, entityIndex) {
         return create(EntityLine, {
-          top: index === 0,
+          top: entityIndex === 0,
+          partyIndex: props.partyIndex,
+          entityIndex: entityIndex,
           entity: entity
         });
       }),
@@ -201,29 +212,37 @@ var Party = render('Party', function() {
 
 var DateLine = render('DateLine', function() {
   return p({className: 'dateLine'}, [
-    this.props.date === 'Each Signature' ? 'Date' : ''
+    this.props.dateStyle === 'Each Signature' ? 'Date' : ''
   ]);
 });
 
-var AddEntity = component('AddEntity', {
-  handleClick: function() {
-    addEntity(this.props.index);
-  },
-  render: function() {
-    return React.DOM.button({
-      onClick: this.handleClick
-    }, 'Add Entity');
+var AddEntityButton = button(
+  'AddEntityButton',
+  'Add Entity',
+  function() {
+    addEntity(this.props.partyIndex);
   }
-});
+);
+
+var DeleteEntityButton = button(
+  'DeleteEntityButton',
+  'Delete Entity',
+  function() {
+    deleteEntity(this.props.partyIndex, this.props.entityIndex);
+  }
+);
 
 var Block = render('Block', function() {
   return div({className: 'block'}, [
-    this.props.date === 'Each Signature' ?
-      create(DateLine, {date: this.props.date}) : null,
+    this.props.dateStyle === 'Each Signature' ?
+      create(DateLine, {dateStyle: this.props.dateStyle}) : null,
     div({className: 'line editorOnly'}, [
-      create(AddEntity, {index: this.props.index})
+      create(AddEntityButton, {partyIndex: this.props.partyIndex})
     ]),
-    create(Party, {party: this.props.party})
+    create(Party, {
+      partyIndex: this.props.partyIndex,
+      party: this.props.party
+    })
   ]);
 });
 
@@ -250,12 +269,12 @@ var TitleInput = component('TitleInput', {
   }
 });
 
-var DateSelect = component('DateSelect', {
+var DateStyleSelect = component('DateStyleSelect', {
   getInitialState: function() {
-    return {date: 'Introductory Clause'};
+    return {dateStyle: 'Introductory Clause'};
   },
   handleChange: function(event) {
-    dateChange(event.target.value);
+    dateStyleChange(event.target.value);
   },
   render: function() {
     return div(null, [
@@ -278,13 +297,13 @@ var SettingsForm = component('SettingsForm', {
   render: function() {
     return React.DOM.form({onSubmit: this.handleSubmit}, [
       create(TitleInput, {title: this.props.title}),
-      create(DateSelect)
+      create(DateStyleSelect)
     ]);
   }
 });
 
 var Paragraph = render('Paragraph', function() {
-  if (this.props.date === 'Introductory Clause') {
+  if (this.props.dateStyle === 'Introductory Clause') {
     return p(null, [
       'The parties are signing this ' + this.props.title +
       ' on the date stated in the introductory clause.'
@@ -299,14 +318,14 @@ var Paragraph = render('Paragraph', function() {
 
 var Page = render('Page', function() {
   return div({className: 'page'}, [
-    create(DeleteButton, {index: this.props.index}),
+    create(DeletePartyButton, {partyIndex: this.props.partyIndex}),
     create(Paragraph, {
-      date: this.props.date,
+      dateStyle: this.props.dateStyle,
       title: this.props.title
     }),
     create(Block, {
-      index: this.props.index,
-      date: this.props.date,
+      partyIndex: this.props.partyIndex,
+      dateStyle: this.props.dateStyle,
       party: this.props.party
     })
   ]);
@@ -321,13 +340,17 @@ function button(name, text, handleClick) {
   });
 }
 
-var AddButton = button('AddButton', 'Add', function() {
-  addBlock();
+var AddPartyButton = button('AddPartyButton', 'Add Party', function() {
+  addParty();
 });
 
-var DeleteButton = button('DeleteButton', 'Delete Page', function() {
-  deleteBlock(this.props.index);
-});
+var DeletePartyButton = button(
+  'DeletePartyButton',
+  'Delete Party',
+  function() {
+    deleteParty(this.props.partyIndex);
+  }
+);
 
 var PrintButton = button('PrintButton', 'Print', function() {
   window.print();
@@ -348,19 +371,19 @@ var Project = component('Project', {
     var project = this.state.project;
     return div(null, [
       create(SettingsForm, {
-        date: project.get('date'),
+        dateStyle: project.get('dateStyle'),
         title: project.get('title')
       }),
-      project.get('blocks')
-        .map(function(party, index) {
-          return React.createElement(Page, {
-            index: index,
-            date: project.get('date'),
+      project.get('parties')
+        .map(function(party, partyIndex) {
+          return create(Page, {
+            partyIndex: partyIndex,
+            dateStyle: project.get('dateStyle'),
             party: party,
             title: project.get('title')
           });
         }),
-      create(AddButton),
+      create(AddPartyButton),
       ' ',
       create(PrintButton)
     ]);

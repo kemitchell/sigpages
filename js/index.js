@@ -168,7 +168,7 @@ function editableInput(name, key, updateEvent, eventArgumentProps) {
           })),
         React.DOM.input({
           key: 'input',
-          className: 'editorOnly',
+          className: 'doNotPrint',
           onChange: this.handleChange,
           onBlur: this.handleBlur,
           value: this.state.value
@@ -348,7 +348,7 @@ var Block = render('Block', function() {
       }) : null,
     div({
       key: 'add',
-      className: 'line editorOnly'
+      className: 'line doNotPrint'
     }, [
       create(AddEntityButton, {
         key: 'add',
@@ -417,7 +417,7 @@ var SettingsForm = component('SettingsForm', {
   },
   render: function() {
     return React.DOM.form({
-      className: 'settings editorOnly',
+      className: 'settings doNotPrint',
       onSubmit: this.handleSubmit
     }, [
       create(AgreementInput, {
@@ -472,7 +472,7 @@ function button(name, text, handleClick) {
     handleClick: handleClick,
     render: function() {
       return React.DOM.button({
-        className: 'editorOnly',
+        className: 'doNotPrint',
         onClick: this.handleClick
       }, text);
     }
@@ -516,7 +516,7 @@ var Project = component('Project', {
       }),
       div({
         key: 'buttons',
-        className: 'buttons editorOnly'
+        className: 'buttons doNotPrint'
       }, [
         create(AddPartyButton, {
           key: 'addParty'

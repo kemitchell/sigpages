@@ -101,7 +101,7 @@
 }
 
 @media print {
-  .editorOnly {
+  .doNotPrint {
     display: none;
   }
   input {

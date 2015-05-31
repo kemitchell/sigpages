@@ -42,6 +42,7 @@
 .blank, .line {
   display: block;
   margin-left: 50%;
+  padding: 0 0 6px 0;
   width: 50%;
 }
 
@@ -51,10 +52,6 @@
 
 .simple {
   border-top: 1px solid black;
-}
-
-.label {
-  display: block;
 }
 
 .spacer {
@@ -80,8 +77,26 @@
   text-align: right;
 }
 
+.printOnly {
+  display: none;
+}
+
+.wrapper {
+  display: inline;
+}
+
+.page input {
+  width: 100%;
+}
+
 @media print {
-  button, #ribbon, footer, form {
+  .editorOnly, button, #ribbon, footer, form {
     display: none;
+  }
+  input {
+    display: none;
+  }
+  .printOnly {
+    display: inline;
   }
 }

@@ -30,10 +30,12 @@ var dateStyleStore = Reflux.createStore({
   }
 });
 
-var addEntity = Reflux.createAction();
 var addParty = Reflux.createAction();
-var deleteEntity = Reflux.createAction();
 var deleteParty = Reflux.createAction();
+
+var addEntity = Reflux.createAction();
+var deleteEntity = Reflux.createAction();
+
 var nameChange = Reflux.createAction();
 var titleChange = Reflux.createAction();
 
@@ -52,23 +54,23 @@ var defaultEntity = fromJS({
 var partiesStore = Reflux.createStore({
   init: function() {
     this.value = this.getInitialState();
-    this.listenTo(deleteParty, function(partyIndex) {
-      this.value = this.value.delete(partyIndex);
+    this.listenTo(deleteParty, function(party) {
+      this.value = this.value.delete(party);
       this.trigger(this.value);
     }.bind(this));
     this.listenTo(addParty, function() {
       this.value = this.value.push(fromJS([defaultPerson]));
       this.trigger(this.value);
     }.bind(this));
-    this.listenTo(addEntity, function(partyIndex) {
+    this.listenTo(addEntity, function(party) {
       this.value = this.value.set(
-        partyIndex,
-        this.value.get(partyIndex).unshift(defaultEntity)
+        party,
+        this.value.get(party).unshift(defaultEntity)
       );
       this.trigger(this.value);
     }.bind(this));
-    this.listenTo(deleteEntity, function(partyIndex, entityIndex) {
-      this.value = this.value.deleteIn([partyIndex, entityIndex]);
+    this.listenTo(deleteEntity, function(party, entity) {
+      this.value = this.value.deleteIn([party, entity]);
       this.trigger(this.value);
     }.bind(this));
     this.listenTo(nameChange, function(party, entity, value) {
@@ -156,10 +158,17 @@ function editableInput(name, key, updateEvent, eventArgumentProps) {
         className: 'wrapper'
       }, [
         (this.state.value ?
-          span({key: 'val', className: 'printOnly'}, this.state.value) :
-          span({key: 'val', className: 'printOnly spacer'})),
+          span({
+            key: 'val',
+            className: 'printOnly'
+          }, this.state.value) :
+          span({
+            key: 'val',
+            className: 'printOnly spacer'
+          })),
         React.DOM.input({
           key: 'input',
+          className: 'editorOnly',
           onChange: this.handleChange,
           onBlur: this.handleBlur,
           value: this.state.value
@@ -240,7 +249,8 @@ var FinalLine = render('FinalLine', function() {
       className: 'final'
     }, [
       div({
-        key: 'signature', className: 'blank'
+        key: 'signature',
+        className: 'blank'
       }, [
         span({
           key: 'label',
@@ -407,7 +417,7 @@ var SettingsForm = component('SettingsForm', {
   },
   render: function() {
     return React.DOM.form({
-      className: 'settings',
+      className: 'settings editorOnly',
       onSubmit: this.handleSubmit
     }, [
       create(AgreementInput, {
@@ -461,7 +471,10 @@ function button(name, text, handleClick) {
   return component(name, {
     handleClick: handleClick,
     render: function() {
-      return React.DOM.button({onClick: this.handleClick}, text);
+      return React.DOM.button({
+        className: 'editorOnly',
+        onClick: this.handleClick
+      }, text);
     }
   });
 }
@@ -503,26 +516,29 @@ var Project = component('Project', {
       }),
       div({
         key: 'buttons',
-        className: 'editorOnly buttons'
+        className: 'buttons editorOnly'
       }, [
         create(AddPartyButton, {
           key: 'addParty'
         }),
-        ' ',
         create(PrintButton, {
           key: 'print'
         })
       ]),
-      project.get('parties')
-        .map(function(party, partyIndex) {
-          return create(Page, {
-            key: partyIndex,
-            partyIndex: partyIndex,
-            dateStyle: project.get('dateStyle'),
-            party: party,
-            agreement: project.get('agreement')
-          });
-        })
+      div({
+        key: 'pages'
+      },
+        project.get('parties')
+          .map(function(party, partyIndex) {
+            return create(Page, {
+              key: partyIndex,
+              partyIndex: partyIndex,
+              dateStyle: project.get('dateStyle'),
+              party: party,
+              agreement: project.get('agreement')
+            });
+          })
+      )
     ]);
   }
 });

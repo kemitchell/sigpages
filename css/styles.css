@@ -42,7 +42,7 @@
 .blank, .line {
   display: block;
   margin-left: 50%;
-  padding: 0 0 6px 0;
+  padding: 0 0 18pt 0;
   width: 50%;
 }
 
@@ -93,8 +93,15 @@
   padding: 12pt;
 }
 
+.buttons button:first-of-type {
+  margin: 0 6pt 0 0;
+}
+.buttons button {
+  margin: 0 6pt 0 6pt;
+}
+
 @media print {
-  .editorOnly, button, #ribbon, footer, form {
+  .editorOnly {
     display: none;
   }
   input {
